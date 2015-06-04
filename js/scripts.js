@@ -16,18 +16,10 @@ function Player(playerName, score) {
 Game.prototype.endRound = function() {
   if (this.activePlayer === this.playerOne) {
     this.playerOne.score += this.roundScore;
-    if (this.playerOne.score >= 100) {
-      return playerOne.playerName + " wins! Oink oink oink.";
-    } else {
       this.activePlayer = this.playerTwo;
-    }
   } else {
     this.playerTwo.score += this.roundScore;
-    if (this.playerTwo.score >= 100) {
-      return playerTwo.playerName + " wins! Oink oink oink.";
-    } else {
     this.activePlayer = this.playerOne;
-    }
   }
   this.roundScore = 0;
 };
@@ -39,6 +31,7 @@ Game.prototype.playRound = function() {
   this.diceTwo = diceTwo;
   if (diceOne === 1 && diceTwo === 1) {
     pigMessage = "> Rolled two ONES! Back to ZERO! <";
+
     if (this.playerOne === this.activePlayer) {
       this.playerOne.score = 0;
     } else {
@@ -55,23 +48,37 @@ Game.prototype.playRound = function() {
 };
 
 // Dice animation
-  // **currently not displaying correct number in image
-  // but actual game scores are still working correctly
-function throwAnimatedDice(elem, spins) {
-    var value = Math.round(Math.random() * 5) + 1;
-    displayDice(10 + (spins*5), value, $(elem));
-    return value;
+// Refactored argument names
+// Number of rolls now static
+// Changed to prototype function to have access to dice rolls
+Game.prototype.throwAnimatedDice = function(element, index) {
+  if (index === 0) {
+    displayDice(15, this.diceOne, $(element));
+  } else {
+    displayDice(15, this.diceTwo, $(element));
+  }
 }
-
+//random dice roll now connected to final dice output
 function displayDice(times, final, element) {
-    element.removeClass();
     if (times > 1) {
-        element.addClass('dice dice_' + (Math.round(Math.random() * 5) + 1));
+      element.removeClass();
+      element.addClass('dice dice_' + (Math.floor(Math.random() * 6) + 1 ));
         setTimeout(function () {
             displayDice(times - 1, final, element);
         }, 100);
-    } else element.addClass('dice dice_' + final);
+      }
+
+      setTimeout(function () {
+        setDiceFinal(element, final);
+      }, 1600);
+
 }
+
+function setDiceFinal(element, final) {
+  element.removeClass();
+  element.addClass('dice dice_' + final);
+}
+
 
 $(function() {
   $("form#player-form").submit(function(event) {
@@ -103,29 +110,34 @@ $(function() {
     $("#play-round").click(function() {
       $("#rolling").text("Rolling...");
 
+      // setTimeout(function() { // adds delay to simulate rolling
+      $(".game-buttons").slideUp(500);
+      $(".piggie").slideUp(500);
+
+      newGame.playRound();
+
+      $("#dice-1").text(newGame.diceOne);
+      $("#dice-2").text(newGame.diceTwo);
+      $("#roundScore").text(newGame.roundScore);
+      $("#player-two-score").text(newGame.playerTwo.score);
+      $("#player-one-score").text(newGame.playerOne.score);
+      $("#scoreboard h2").text(newGame.activePlayer.playerName + "'s turn");
+      $("#rolling").text(pigMessage);
+      // setTimeout(function() { // delays prompt after roll results
+        $("#rolling").text("Oink. What do you want to do?");
+      // }, 2000);
+      $(".game-buttons").fadeIn(1000);
+      $(".piggie").fadeIn(300);
+    // }, 1200);
+
       $('.dice').each(function(index) {
-        throwAnimatedDice(this, index );
+
+          newGame.throwAnimatedDice(this, index);
+
       });
 
-      $(".game-buttons").slideUp(100);
-      $(".piggie").slideUp(100);
-      setTimeout(function() { // adds delay to simulate rolling
-        newGame.playRound();
-        $("#dice-1").text(newGame.diceOne);
-        $("#dice-2").text(newGame.diceTwo);
 
-        $("#roundScore").text(newGame.roundScore);
-        $("#player-two-score").text(newGame.playerTwo.score);
-        $("#player-one-score").text(newGame.playerOne.score);
-        $("#scoreboard h2").text(newGame.activePlayer.playerName + "'s turn");
-        $("#rolling").text(pigMessage);
 
-        setTimeout(function() { // delays prompt after roll results
-          $("#rolling").text("Oink. What do you want to do?");
-        }, 2000);
-        $(".game-buttons").fadeIn(1000);
-        $(".piggie").fadeIn(300);
-      }, 1200);
     });
 
     // End-turn button
@@ -142,15 +154,18 @@ $(function() {
         $("#live-game").fadeOut();
         $("#win-screen").delay(750).fadeIn();
         $("#win-screen h1").text(newGame.playerOne.playerName + " wins!");
-        $("#win-screen").delay(1000).fadeOut();
-        $("#new-game").delay(3000).fadeIn();
+        $("#win-screen").delay(4000).fadeOut();
+        $("#new-game").delay(6000).fadeIn();
+
       } else if (newGame.playerTwo.score >= 100) {
         $("#live-game").fadeOut();
         $("#win-screen").delay(750).fadeIn();
         $("#win-screen h1").text(newGame.playerTwo.playerName + "wins!");
-        $("#win-screen").delay(1000).fadeOut();
-        $("#new-game").delay(3000).fadeIn();
+        $("#win-screen").delay(4000).fadeOut();
+        $("#new-game").delay(6000).fadeIn();
       }
+
+
     });
   });
 });
